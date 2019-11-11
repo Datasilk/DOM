@@ -24,18 +24,18 @@ var nodes = dom.Elements.Where(el => el.TagName == "div").SelectMany((el, result
 
 ### ParserOptions
 
-|Property|Default|Description
-|---|---|
-|ReplaceNbsp|`&nbsp;`|Replaces HTML encoded spaces with the provided string
-|TrimText|`TrimType.None`|Trims spaces from `#text` nodes. **NOTE:** Parser automatically removes any duplicate spaces from `#text` nodes.
+|Property|Default|Description|
+|---|---|---|
+|ReplaceNbsp|`&nbsp;`|Replaces HTML encoded spaces with the provided string|
+|TrimText|`TrimType.None`|Trims spaces from `#text` nodes. **NOTE:** Parser automatically removes any duplicate spaces from `#text` nodes.|
 
 ### TrimType
 An `enum` used as `ParserOptions.TrimText`
 
-|Label|Value|Description
-|---|---|
-|None|0|Parser does not trim any spaces from the beginning or end of all `#text` nodes
-|Right|1|Parser trims all spaces from the end of all `#text` nodes
-|Left|2|Parser trims all spaces from the beginning of all `#text` nodes
-|Both|3|Parser trims all spaces from the beginning and end of all `#text` nodes
-|OneTrailingSpace|4|Parser trims all spaces from the beginning and end of all `#text` nodes, and if there is a space at the end of the `#text` node, it will not be removed
+|Label|Value|Description|
+|---|---|---|
+|None|0|Parser does not trim any spaces from the beginning or end of all `#text` nodes|
+|Right|1|Parser trims all spaces from the end of all `#text` nodes|
+|Left|2|Parser trims all spaces from the beginning of all `#text` nodes|
+|Both|3|Parser trims all spaces from the beginning and end of all `#text` nodes|
+|OneTrailingSpace|4|Parser trims all spaces from the beginning and end of all `#text` nodes, and if there is a space at the end of the `#text` node, it will not be removed|
