@@ -25,7 +25,7 @@ var nodes = dom.Elements.Where(el => el.TagName == "div").SelectMany((el, result
 ### ParserOptions
 
 |Property|Default|Description
-|----
+|---|---|
 |ReplaceNbsp|`&nbsp;`|Replaces HTML encoded spaces with the provided string
 |TrimText|`TrimType.None`|Trims spaces from `#text` nodes. **NOTE:** Parser automatically removes any duplicate spaces from `#text` nodes.
 
@@ -33,7 +33,7 @@ var nodes = dom.Elements.Where(el => el.TagName == "div").SelectMany((el, result
 An `enum` used as `ParserOptions.TrimText`
 
 |Label|Value|Description
-|----
+|---|---|
 |None|0|Parser does not trim any spaces from the beginning or end of all `#text` nodes
 |Right|1|Parser trims all spaces from the end of all `#text` nodes
 |Left|2|Parser trims all spaces from the beginning of all `#text` nodes
