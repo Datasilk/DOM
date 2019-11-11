@@ -4,7 +4,7 @@ A C# class library for parsing HTML into a searchable, filterable DOM tree
 ### Basic usage
 ```
 var html = "<html><head></head><body><div>Hello World!</div></body></html>";
-var dom = new HtmlParser(html, 
+var dom = Html.Parse(html, 
 	new ParserOptions()
 	{
 		ReplaceNbsp = " ",
