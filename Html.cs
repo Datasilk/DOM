@@ -1,193 +1,30 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using GMaster.Extensions.Strings;
 
-namespace Utility.DOM
+namespace Datasilk.Core.DOM
 {
-    public class DomElement
-    {
-        public Parser Parser;
-        public bool IsSelfClosing; // <tag/>
-        public bool IsClosing; // </tag>
-        public int Index;
-        public int ParentIndex;
-        public int[] Indexes;
-        public string TagName;
-        public string Text;
-        public string Id;
-        public List<string> ClassNames;
-        public List<int> ChildenIndexes;
-        public Dictionary<string, string> Attributes;
-        public Dictionary<string, string> Styles;
-
-        private int _nextSibling = -1;
-        private int _firstChild = -1;
-        private bool _nofirstChild = false;
-
-        public DomElement(Parser parser)
-        {
-            Parser = parser;
-        }
-
-        public List<DomElement> Find(string XPath)
-        {
-            return Parser.Find(XPath, this);
-        }
-
-        public List<DomElement> Children(int limit = 0)
-        {
-            var items = new List<DomElement>();
-            if (ChildenIndexes == null) { return items; }
-            foreach (var x in ChildenIndexes)
-            {
-                items.Add(Parser.Elements[x]);
-                if (limit > 0) { if (x + 1 == limit) { return items; } }
-            }
-            return items;
-        }
-
-        public DomElement FirstChild
-        {
-            get
-            {
-                if (_firstChild >= 0)
-                {
-                    return Parser.Elements[_firstChild];
-                }
-                if (ChildenIndexes != null)
-                {
-                    if (ChildenIndexes.Count > 0)
-                    {
-                        _firstChild = ChildenIndexes[0];
-                        return Parser.Elements[_firstChild];
-                    }
-
-                }
-                if (!_nofirstChild && Index < Parser.Elements.Count - 1)
-                {
-                    var hierarchy = string.Join(">", Indexes);
-                    for (var x = Index + 1; x < Parser.Elements.Count; x++)
-                    {
-                        if(Parser.Elements[x].Indexes.Length == Indexes.Length + 1)
-                        {
-                            var childhier = string.Join(">", Parser.Elements[x].Indexes);
-                            if (childhier.IndexOf(hierarchy) >= 0)
-                            {
-                                _firstChild = x;
-                                return Parser.Elements[x];
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }else if(Parser.Elements[x].Indexes.Length < Indexes.Length + 1)
-                        {
-                            break;
-                        }
-                        
-                    }
-                    _nofirstChild = true;
-                }
-
-
-
-                return null;
-            }
-        }
-
-        public DomElement NextSibling
-        {
-            get
-            {
-                if (_nextSibling >= 0) { return Parser.Elements[_nextSibling]; }
-                var hierarchy = string.Join(">", Indexes);
-                var len = Indexes.Length;
-                for (var x = Index + 1; x < Parser.Elements.Count; x++)
-                {
-                    var elem = Parser.Elements[x];
-                    if(elem.Indexes.Length == len)
-                    {
-                        var child = string.Join(">", elem.Indexes);
-                        if (hierarchy == child)
-                        {
-                            return elem;
-                        }
-                        else { return null; }
-                    }else if(elem.Indexes.Length < len) { return null; }
-                }
-                return null;
-            }
-        }
-
-        public DomElement Parent
-        {
-            get
-            {
-                if (Indexes.Length == 0) { return null; }
-                return Parser.Elements[Indexes[Indexes.Length - 1]];
-            }
-        }
-
-        public int HierarchyTagIndex(string tag)
-        {
-            for (var x = Indexes.Length - 1; x >= 0; x--)
-            {
-                if (Parser.Elements[Indexes[x]].TagName == tag)
-                {
-                    return x;
-                }
-            }
-            return -1;
-        }
-
-        public bool HasTagInHierarchy(string tag)
-        {
-            return HierarchyTagIndex(tag) >= 0;
-        }
-
-        public List<string> HierarchyTags()
-        {
-            var tags = new List<string>();
-            for (var x = 0; x < Indexes.Length; x++)
-            {
-                tags.Add(Parser.Elements[Indexes[x]].TagName);
-            }
-            return tags;
-        }
-    }
-
-    public enum TrimType
-    {
-        None = 0,
-        Right = 1,
-        Left = 2,
-        Both = 3,
-        OneTrailingSpace = 4
-    }
-
-    public class ParserOptions
-    {
-        public string replaceNbsp { get; set; } = "&nbsp;";
-        public TrimType trimText { get; set; } = TrimType.OneTrailingSpace;
-    }
-
-    public class Parser
+    public class Html
     {
         public string RawHtml;
-        public List<DomElement> Elements;
+        public List<Element> Elements;
         public string DocumentType = "html";
         private ParserOptions Options;
 
-        public Parser(string htm, ParserOptions options = null)
+        public Html(string htm, ParserOptions options = null)
         {
             RawHtml = htm;
             Options = options != null ? options : new ParserOptions();
-            Elements = new List<DomElement>();
-            Parse(htm);
+            Elements = new List<Element>();
+            ParseHtml(htm);
         }
 
-        public void Parse(string htm)
+        public static Html Parse(string html, ParserOptions options = null)
+        {
+            return new Html(html, options);
+        }
+
+        private void ParseHtml(string htm)
         {
             if (htm.Length <= 3) { return; }
             bool isInScript = false;
@@ -202,12 +39,12 @@ namespace Utility.DOM
             for (var x = 0; x < htm.Length; x++)
             {
                 //find HTML tag
-                var domTag = new DomElement(this);
+                var domTag = new Element(this);
 
                 if (foundTag == false && xs == 0)
                 {
                     //no tags found in htm, create text tag and exit
-                    var textTag = new DomElement(this)
+                    var textTag = new Element(this)
                     {
                         TagName = "#text",
                         Text = CleanText(htm)
@@ -247,7 +84,7 @@ namespace Utility.DOM
                 }
                 if (schar[0] == '<')
                 {
-                    if (schar[1].ToString().OnlyAlphabet(tagNameChars))
+                    if (OnlyAlphabet(schar[1].ToString(), tagNameChars))
                     {
                         //found HTML tag
                         s1 = htm.IndexOf(">", x + 2);
@@ -392,7 +229,7 @@ namespace Utility.DOM
                                 strText = htm.Substring(xs, x - xs).Trim();
                                 if (strText != "")
                                 {
-                                    var textTag = new DomElement(this)
+                                    var textTag = new Element(this)
                                     {
                                         TagName = "#text",
                                         Text = CleanText(strText)
@@ -453,7 +290,7 @@ namespace Utility.DOM
             {
                 if (htm.Substring(xs).Trim().Replace("\r", "").Replace("\n", "").Length > 0)
                 {
-                    var textTag = new DomElement(this)
+                    var textTag = new Element(this)
                     {
                         TagName = "#text",
                         Text = CleanText(htm.Substring(xs))
@@ -515,7 +352,7 @@ namespace Utility.DOM
             return attrs;
         }
 
-        private int AddTag(DomElement domTag, int parentElement, bool isSelfClosing, bool isClosingTag, List<string> hierarchy, List<int> hierarchyIndexes)
+        private int AddTag(Element domTag, int parentElement, bool isSelfClosing, bool isClosingTag, List<string> hierarchy, List<int> hierarchyIndexes)
         {
             domTag.ParentIndex = parentElement;
             domTag.Index = Elements.Count;
@@ -541,7 +378,7 @@ namespace Utility.DOM
 
             if (parentElement > -1)
             {
-                DomElement parent = Elements[parentElement];
+                Element parent = Elements[parentElement];
                 if (parent.ChildenIndexes == null)
                 {
                     parent.ChildenIndexes = new List<int>();
@@ -563,116 +400,6 @@ namespace Utility.DOM
             domTag.Indexes = hierarchyIndexes.ToArray();
             Elements.Add(domTag);
             return parentElement;
-        }
-
-        public List<DomElement> Find(string XPath, DomElement rootElement = null)
-        {
-            var elements = new List<DomElement>();
-            if (XPath == "") { return elements; }
-            if (XPath.IndexOf("/") < 0) { return elements; }
-            if (Elements.Count == 0) { return elements; }
-            var root = rootElement;
-            DomElement elem;
-            var domIndex = 0;
-            if (root == null)
-            {
-                //search from first element
-                root = Elements[0];
-            }
-            else
-            {
-                //start search at rootElement;
-                domIndex = rootElement.Index + 1;
-            }
-
-            //search the DOM to find elements based on the XPath query
-            var paths = XPath.Split('/');
-            var lastPath = "";
-            var searchPath = "";
-            foreach (var path in paths)
-            {
-                if (path == "")
-                {
-                    //hierarchy symbol
-                    if (lastPath == "/")
-                    {
-                        //look anywhere in the hierarchy
-                        searchPath = "//";
-
-                    }
-                    else
-                    {
-                        searchPath = "/";
-                    }
-                }
-                else
-                {
-                    //check for search function
-                    var searchName = "";
-                    if (path.IndexOf("[") >= 0)
-                    {
-                        searchName = path.Replace("[" + path.Split('[')[1], "").ToLower();
-                    }
-                    else
-                    {
-                        searchName = path.ToLower();
-                    }
-
-                    //find matching elements
-                    switch (searchPath)
-                    {
-                        case "/":
-                            //find elements at current hierarchy level
-                            foreach (var child in root.Children())
-                            {
-                                if (child.TagName == searchName)
-                                {
-                                    //found matching element !!!!!!!
-                                    elements.Add(child);
-                                }
-                            }
-                            break;
-
-                        case "//":
-                            //find elements at any hierarchy level
-                            var hierarchy = "";
-                            if (root.Indexes.Length > 0)
-                            {
-                                hierarchy = string.Join(">", root.Indexes);
-                            }
-                            else
-                            {
-                                hierarchy = "";
-                            }
-                            for (var x = root.Index + 1; x < Elements.Count; x++)
-                            {
-                                var childhier = "";
-                                elem = Elements[x];
-                                if (elem.Indexes.Length > 0)
-                                {
-                                    childhier = string.Join(">", elem.Indexes);
-                                }
-                                else
-                                {
-                                    childhier = "";
-                                }
-                                if (childhier.IndexOf(hierarchy) == 0)
-                                {
-                                    if (elem.TagName == searchName)
-                                    {
-                                        //found matching element !!!!!!!
-                                        elements.Add(elem);
-                                    }
-                                }
-                            }
-                            break;
-                    }
-                }
-                lastPath = path;
-                if (lastPath == "") { lastPath = "/"; }
-            }
-
-            return elements;
         }
 
         public string Render(bool useLineBreaks = false, bool useTabs = false)
@@ -726,10 +453,10 @@ namespace Utility.DOM
 
         private string CleanText(string text)
         {
-            if (Options.replaceNbsp != "&nbsp;") { text = text.Replace("&nbsp;", Options.replaceNbsp); }
+            if (Options.ReplaceNbsp != "&nbsp;") { text = text.Replace("&nbsp;", Options.ReplaceNbsp); }
             text = NormalizeWhiteSpaces(text);
-            if (Options.trimText != TrimType.None) {
-                switch (Options.trimText)
+            if (Options.TrimText != TrimType.None) {
+                switch (Options.TrimText)
                 {
                     case TrimType.Left:
                         text = text.TrimStart();
@@ -757,7 +484,7 @@ namespace Utility.DOM
             return text.Trim();
         }
 
-        public static string NormalizeWhiteSpaces(string input)
+        private string NormalizeWhiteSpaces(string input)
         {
             int len = input.Length,
                 index = 0,
@@ -810,6 +537,45 @@ namespace Utility.DOM
             }
 
             return new string(src, 0, index);
+        }
+
+        private bool OnlyAlphabet(string myStr, params string[] exceptionList)
+        {
+            for (int x = 0; x <= myStr.Length - 1; x++)
+            {
+                var result = false;
+                if (Asc(myStr.Substring(x, 1)) >= Asc("a") & Asc(myStr.Substring(x, 1)) <= Asc("z"))
+                {
+                    result = true;
+                }
+                if (Asc(myStr.Substring(x, 1)) >= Asc("A") & Asc(myStr.Substring(x, 1)) <= Asc("Z"))
+                {
+                    result = true;
+                }
+                if (exceptionList.Length >= 0)
+                {
+                    for (int y = exceptionList.GetLowerBound(0); y <= exceptionList.GetUpperBound(0); y++)
+                    {
+                        if (myStr.Substring(x, 1) == exceptionList[y])
+                        {
+                            result = true;
+                        }
+                    }
+                }
+                if (result == false)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private int Asc(string character)
+        {
+            string c = character.ToString();
+            if (character.Length > 1) { c = c.Substring(0, 1); }
+
+            return Encoding.ASCII.GetBytes(character)[0];
         }
         #endregion
     }
