@@ -12,14 +12,17 @@
     <RepositoryUrl>https://www.github.com/Datasilk/DOM</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>DOM HTML parser</PackageTags>
-    <PackageReleaseNotes>After utilizing this DOM parser within various projects, I've decided to make an effort to publish the Nuget package for anyone to use.</PackageReleaseNotes>
+    <PackageReleaseNotes>Added AllChildren() method to make it easier to retrieve all children within the hierarchy of an Element.</PackageReleaseNotes>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <AssemblyVersion>1.0.2.0</AssemblyVersion>
+    <FileVersion>1.0.2.0</FileVersion>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="LICENSE">
+    <None Include="..\LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>

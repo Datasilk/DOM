@@ -3,7 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29424.173
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DOM", "DOM.csproj", "{D5E8F63A-65A6-4E01-B8E4-9D1CADDB9D41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DOM", "DOM\DOM.csproj", "{D5E8F63A-65A6-4E01-B8E4-9D1CADDB9D41}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{03BAA3C9-AF46-4DA6-835B-9F6102353538}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D5E8F63A-65A6-4E01-B8E4-9D1CADDB9D41} = {D5E8F63A-65A6-4E01-B8E4-9D1CADDB9D41}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CBDBDAED-CE4A-4207-993F-458797F3812C}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+		README.nuget.md = README.nuget.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +27,10 @@ Global
 		{D5E8F63A-65A6-4E01-B8E4-9D1CADDB9D41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5E8F63A-65A6-4E01-B8E4-9D1CADDB9D41}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5E8F63A-65A6-4E01-B8E4-9D1CADDB9D41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03BAA3C9-AF46-4DA6-835B-9F6102353538}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03BAA3C9-AF46-4DA6-835B-9F6102353538}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03BAA3C9-AF46-4DA6-835B-9F6102353538}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03BAA3C9-AF46-4DA6-835B-9F6102353538}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

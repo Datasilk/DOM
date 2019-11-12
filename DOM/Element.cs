@@ -1,20 +1,22 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Datasilk.Core.DOM
 {
     public class Element
     {
-        public Html Parser;
+        public Html Dom;
         public bool IsSelfClosing; // <tag/>
         public bool IsClosing; // </tag>
+        public bool IsRemoved = false; // if True, flagged for removal from DOM.
         public int Index;
         public int ParentIndex;
         public int[] Indexes;
         public string TagName;
         public string Text;
         public string Id;
-        public List<string> ClassNames;
-        public List<int> ChildenIndexes;
+        public List<string> ClassNames = new List<string>();
+        public List<int> ChildrenIndexes = new List<int>();
         public Dictionary<string, string> Attributes;
         public Dictionary<string, string> Styles;
 
@@ -24,19 +26,31 @@ namespace Datasilk.Core.DOM
 
         public Element(Html parser)
         {
-            Parser = parser;
+            Dom = parser;
         }
 
-        public List<Element> Children(int limit = 0)
+        public List<Element> Children()
         {
-            var items = new List<Element>();
-            if (ChildenIndexes == null) { return items; }
-            foreach (var x in ChildenIndexes)
+            return _Children();
+        }
+
+        private List<Element> _Children(bool traverse = false)
+        {
+            if (traverse)
             {
-                items.Add(Parser.Elements[x]);
-                if (limit > 0) { if (x + 1 == limit) { return items; } }
+                var children = _Children();
+                children.AddRange(_Children().SelectMany((c, results) => c._Children(true)).ToList());
+                return children;
             }
-            return items;
+            else
+            {
+                return ChildrenIndexes.Select(c => Dom.Elements[c]).ToList();
+            }
+        }
+
+        public List<Element> AllChildren()
+        {
+            return _Children(true);
         }
 
         public Element FirstChild
@@ -45,36 +59,36 @@ namespace Datasilk.Core.DOM
             {
                 if (_firstChild >= 0)
                 {
-                    return Parser.Elements[_firstChild];
+                    return Dom.Elements[_firstChild];
                 }
-                if (ChildenIndexes != null)
+                if (ChildrenIndexes != null)
                 {
-                    if (ChildenIndexes.Count > 0)
+                    if (ChildrenIndexes.Count > 0)
                     {
-                        _firstChild = ChildenIndexes[0];
-                        return Parser.Elements[_firstChild];
+                        _firstChild = ChildrenIndexes[0];
+                        return Dom.Elements[_firstChild];
                     }
 
                 }
-                if (!_nofirstChild && Index < Parser.Elements.Count - 1)
+                if (!_nofirstChild && Index < Dom.Elements.Count - 1)
                 {
                     var hierarchy = string.Join(">", Indexes);
-                    for (var x = Index + 1; x < Parser.Elements.Count; x++)
+                    for (var x = Index + 1; x < Dom.Elements.Count; x++)
                     {
-                        if (Parser.Elements[x].Indexes.Length == Indexes.Length + 1)
+                        if (Dom.Elements[x].Indexes.Length == Indexes.Length + 1)
                         {
-                            var childhier = string.Join(">", Parser.Elements[x].Indexes);
+                            var childhier = string.Join(">", Dom.Elements[x].Indexes);
                             if (childhier.IndexOf(hierarchy) >= 0)
                             {
                                 _firstChild = x;
-                                return Parser.Elements[x];
+                                return Dom.Elements[x];
                             }
                             else
                             {
                                 break;
                             }
                         }
-                        else if (Parser.Elements[x].Indexes.Length < Indexes.Length + 1)
+                        else if (Dom.Elements[x].Indexes.Length < Indexes.Length + 1)
                         {
                             break;
                         }
@@ -93,12 +107,12 @@ namespace Datasilk.Core.DOM
         {
             get
             {
-                if (_nextSibling >= 0) { return Parser.Elements[_nextSibling]; }
+                if (_nextSibling >= 0) { return Dom.Elements[_nextSibling]; }
                 var hierarchy = string.Join(">", Indexes);
                 var len = Indexes.Length;
-                for (var x = Index + 1; x < Parser.Elements.Count; x++)
+                for (var x = Index + 1; x < Dom.Elements.Count; x++)
                 {
-                    var elem = Parser.Elements[x];
+                    var elem = Dom.Elements[x];
                     if (elem.Indexes.Length == len)
                     {
                         var child = string.Join(">", elem.Indexes);
@@ -118,8 +132,31 @@ namespace Datasilk.Core.DOM
         {
             get
             {
-                if (Indexes.Length == 0) { return null; }
-                return Parser.Elements[Indexes[Indexes.Length - 1]];
+                if (Indexes.Length < 2) { return null; }
+                return Dom.Elements[Indexes[Indexes.Length - 2]];
+            }
+        }
+
+        public List<Element> Parents()
+        {
+            return Indexes.Select(i => Dom.Elements[i]).ToList();
+        }
+
+        public void ReplaceWith(Element element)
+        {
+            element.IsRemoved = true;
+            element.ParentIndex = ParentIndex;
+            Parent.ChildrenIndexes = Parent.ChildrenIndexes.Select(i => i == Index ? element.Index : i).ToList();
+            var children = AllChildren();
+            foreach(var child in children)
+            {
+                child.IsRemoved = true;
+            }
+            element.IsRemoved = false;
+            children = element.AllChildren();
+            foreach (var child in children)
+            {
+                child.IsRemoved = false;
             }
         }
 
@@ -127,7 +164,7 @@ namespace Datasilk.Core.DOM
         {
             for (var x = Indexes.Length - 1; x >= 0; x--)
             {
-                if (Parser.Elements[Indexes[x]].TagName == tag)
+                if (Dom.Elements[Indexes[x]].TagName == tag)
                 {
                     return x;
                 }
@@ -145,7 +182,7 @@ namespace Datasilk.Core.DOM
             var tags = new List<string>();
             for (var x = 0; x < Indexes.Length; x++)
             {
-                tags.Add(Parser.Elements[Indexes[x]].TagName);
+                tags.Add(Dom.Elements[Indexes[x]].TagName);
             }
             return tags;
         }

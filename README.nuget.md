@@ -18,3 +18,13 @@ var elemText = dom.Elements.Where(el => el.Text.Contains("Hello")).FirstOrDefaul
 // select all child nodes from all DIV tags
 var nodes = dom.Elements.Where(el => el.TagName == "div").SelectMany((el, results) => el.Children());
 ```
+
+### Replace one `Element` with another
+```
+
+foreach(var elem in dom.Elements.Where(el => el.ClassNames.Contains("button")))
+{
+	var button = elem.AllChildren.First(el => el.TagName == "a");
+	elem.ReplaceWith(button)
+}
+```

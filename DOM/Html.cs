@@ -379,11 +379,11 @@ namespace Datasilk.Core.DOM
             if (parentElement > -1)
             {
                 Element parent = Elements[parentElement];
-                if (parent.ChildenIndexes == null)
+                if (parent.ChildrenIndexes == null)
                 {
-                    parent.ChildenIndexes = new List<int>();
+                    parent.ChildrenIndexes = new List<int>();
                 }
-                parent.ChildenIndexes.Add(Elements.Count);
+                parent.ChildrenIndexes.Add(Elements.Count);
                 Elements[parentElement] = parent;
             }
 
@@ -402,24 +402,42 @@ namespace Datasilk.Core.DOM
             return parentElement;
         }
 
+        private string atab = "    ";
+
         public string Render(bool useLineBreaks = false, bool useTabs = false)
         {
             var html = new StringBuilder();
-            var atab = "    ";
             var tabs = "";
-            foreach(var el in Elements)
+            if(Elements.Count == 0) { return ""; }
+
+            //get all root elements
+            foreach(var root in Elements.Where(e => e.ParentIndex == -1))
             {
-                if(el.TagName == "#text")
+                RenderElement(root, html, tabs, useLineBreaks, useTabs);
+            }
+            return html.ToString();
+        }
+
+        private void RenderElement(Element el, StringBuilder html, string tabs, bool useLineBreaks = false, bool useTabs = false)
+        {
+            if (el.IsRemoved) { return; }
+            if (el.TagName == "#text")
+            {
+                //text node
+                if (useTabs) { html.Append(tabs + atab); }
+                html.Append(el.Text);
+                if (useLineBreaks) { html.Append("\n"); }
+            }
+            else
+            {
+                //element node;
+                if (useTabs) { html.Append(tabs + atab); }
+                if (el.TagName == "!--")
                 {
-                    //text node
-                    if (useTabs){ html.Append(tabs + atab); }
-                    html.Append(el.Text);
-                    if (useLineBreaks) { html.Append("\n"); }
+                    html.Append("<!--" + (useLineBreaks ? "\n" : "") + el.Text + (useLineBreaks ? "\n" : "") + "-->");
                 }
                 else
                 {
-                    //element node;
-                    if (useTabs) { html.Append(tabs + atab); }
                     if (el.Attributes != null && el.Attributes.Count > 0)
                     {
                         html.Append("<" + el.TagName + " " + string.Join(' ', el.Attributes.Select(a => a.Key + "=\"" + a.Value + "\"").ToArray()) + (el.IsSelfClosing ? "/" : "") + ">");
@@ -443,10 +461,14 @@ namespace Datasilk.Core.DOM
                             tabs = tabs.Substring(0, tabs.Length - 1 - atab.Length);
                         }
                     }
-                    if (useLineBreaks) { html.Append("\n"); }
+                }
+
+                if (useLineBreaks) { html.Append("\n"); }
+                foreach(var child in el.Children())
+                {
+                    RenderElement(child, html, tabs, useLineBreaks, useTabs);
                 }
             }
-            return html.ToString();
         }
 
         #region "Helpers"

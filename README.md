@@ -22,6 +22,17 @@ var elemText = dom.Elements.Where(el => el.Text.Contains("Hello")).FirstOrDefaul
 var nodes = dom.Elements.Where(el => el.TagName == "div").SelectMany((el, results) => el.Children());
 ```
 
+### Replace one `Element` with another
+```
+
+foreach(var elem in dom.Elements.Where(el => el.ClassNames.Contains("button")))
+{
+	var button = elem.AllChildren.First(el => el.TagName == "a");
+	elem.ReplaceWith(button)
+}
+```
+In the example above, we are replacing all elements that contain the `ClassName` "button" with an `<a>` tag found within each button childNode hierarchy using the `AllChildren` method.
+
 ### ParserOptions
 
 |Property|Default|Description|
