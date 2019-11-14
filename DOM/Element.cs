@@ -139,7 +139,14 @@ namespace Datasilk.Core.DOM
 
         public List<Element> Parents()
         {
-            return Indexes.Select(i => Dom.Elements[i]).ToList();
+            if(Indexes.Length > 1)
+            {
+                return Indexes.SkipLast(1).Select(i => Dom.Elements[i]).ToList();
+            }
+            else
+            {
+                return new List<Element>();
+            }
         }
 
         public void ReplaceWith(Element element)
