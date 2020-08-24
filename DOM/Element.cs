@@ -153,6 +153,7 @@ namespace Datasilk.Core.DOM
         {
             element.IsRemoved = true;
             element.ParentIndex = ParentIndex;
+            if(Parent == null) { return; }
             Parent.ChildrenIndexes = Parent.ChildrenIndexes.Select(i => i == Index ? element.Index : i).ToList();
             var children = AllChildren();
             foreach(var child in children)
