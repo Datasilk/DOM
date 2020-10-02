@@ -491,7 +491,7 @@ namespace Datasilk.Core.DOM
                         text = text.Trim();
                         break;
                     case TrimType.OneTrailingSpace:
-                        if(text.Substring(text.Length - 1, 1) == " ")
+                        if(Options.ForceOneTrailingSpace || text.Substring(text.Length - 1, 1) == " ")
                         {
                             text = text.Trim() + " ";
                         }

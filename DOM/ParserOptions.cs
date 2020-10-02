@@ -13,5 +13,6 @@
     {
         public string ReplaceNbsp { get; set; } = "&nbsp;";
         public TrimType TrimText { get; set; } = TrimType.OneTrailingSpace;
+        public bool ForceOneTrailingSpace = false;
     }
 }
